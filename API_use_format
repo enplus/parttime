@@ -1,0 +1,33 @@
+
+# 기본적으로 https://steemit.com/coinkorea/@flyyou/python-script-to-query-steam-price 보고 따라했습니다.
+
+import threading
+from urllib import request
+import winsound
+import json
+
+def main():
+    print("--Korbit Price--- ")
+
+    checkCoin("https://api.bithumb.com/public/ticker/all")
+   # checkCoin('https://api.korbit.co.kr/v1/ticker/detailed')
+
+def checkCoin(url):
+    threading.Timer(1, checkCoin, [url]).start()
+ #   print("check_point")
+
+    data = request.urlopen(url).read(3000) # 문자열 개수라고 함
+
+    print("-------- htttp data----------")
+
+    json_data = json.loads(data)    # json이 데이터베이스였죠 아마?
+    print(json_data)
+
+    #  API를 웹 브라우저로 보면 다음과 같습니다.
+    #  {"STEEM":{"BTC":0.0003107,"USD":1.2,"KRW":1363.96},"BTC":{"BTC":1,"USD":3867.08,"KRW":4389963.13},"ETH":{"BTC":0.0814,"USD":315.68,"KRW":355953.92}}
+
+    # 제가 따라한 소스 코드는 이렇게 썼는데요  - print(json_data["STEEM"]["KRW"])
+    # 즉 "STEEM"의 "KRW" 부분을 출력하라는 문법입니다.
+    # 그러므로 사이트 별로 API 켜본 다음에 우리가 원하는 부분을  json_data["원하는 부분"]  에 넣어주기만 하면 파싱이 다 됩니다.
+
+main()
