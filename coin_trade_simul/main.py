@@ -18,9 +18,8 @@ def main():
 
     trader=Trader()
     trader.trade(bithumb, coinone)
-    print("테스트용으로 메인에서 한 번만 뽑아보는 bithumb.lowest_ask_price 값입니다. : ", bithumb.lowest_ask_price)
+    print("lowest_ask_price Bithumb:%s Coinone:%s" % (bithumb.lowest_ask_price, coinone.lowest_ask_price))
     #여기서 bithumb객체의 lowest_ask_price를 뽑아보면 초기값인 2000000000이 나옵니다.
     #물론 메써드 내부의 쓰레드에서 값을 출력하면  잘 나오고요.
-    
 
 main()

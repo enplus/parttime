@@ -3,12 +3,13 @@ from urllib import request
 import json
 
 class Coinone:
-    API_URL = 'https://api.coinone.co.kr/orderbook?currency=eth'
-    timestamp = 0;
-    highest_bid_price = 0
-    highest_bid_qty = 0
-    lowest_ask_price = 2000000000
-    lowest_ask_qty = 0
+    def __init__(self):
+        self.API_URL = 'https://api.coinone.co.kr/orderbook?currency=eth'
+        self.timestamp = 0;
+        self.highest_bid_price = 0
+        self.highest_bid_qty = 0
+        self.lowest_ask_price = 2000000000
+        self.lowest_ask_qty = 0
 
     def renew_info(self):
         threading.Timer(1, self.renew_info).start()
@@ -18,16 +19,16 @@ class Coinone:
 
         json_data = json.loads(data)  # json이 데이터베이스였죠 아마?
 
-        timestamp = json_data["timestamp"]      #거래 전에 타임스탬프를 비교하게 할 생각인데, 다음 작업들과 약간 시간차가 있을 지가 걱정입니다.
-        highest_bid_price = json_data["bid"][0]["price"]  #전부 key가 price, qty로 똑같길래 잘 봤더니 []가 있더라구요. array에서 0번째 즉 제일 비싼 매수호가입니다.
-        highest_bid_qty = json_data["bid"][0]["qty"]
-        lowest_ask_price = json_data["ask"][0]["price"]
-        lowest_ask_qty = json_data["ask"][0]["qty"]
+        self.timestamp = json_data["timestamp"]      #거래 전에 타임스탬프를 비교하게 할 생각인데, 다음 작업들과 약간 시간차가 있을 지가 걱정입니다.
+        self.highest_bid_price = json_data["bid"][0]["price"]  #전부 key가 price, qty로 똑같길래 잘 봤더니 []가 있더라구요. array에서 0번째 즉 제일 비싼 매수호가입니다.
+        self.highest_bid_qty = json_data["bid"][0]["qty"]
+        self.lowest_ask_price = json_data["ask"][0]["price"]
+        self.lowest_ask_qty = json_data["ask"][0]["qty"]
 
         print("-------- Coinone info----------")
-        print("time stamp : ", timestamp)
-        print("highest bid : " , highest_bid_price, ", ", highest_bid_qty)
-        print("lowest ask : ", lowest_ask_price, ", ", lowest_ask_qty)
+        print("time stamp : ", self.timestamp)
+        print("highest bid : " , self.highest_bid_price, ", ", self.highest_bid_qty)
+        print("lowest ask : ", self.lowest_ask_price, ", ", self.lowest_ask_qty)
         print(".")
 
         #  API를 웹 브라우저로 보면 다음과 같습니다.
