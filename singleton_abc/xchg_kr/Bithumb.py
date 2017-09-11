@@ -1,5 +1,5 @@
-# support code from https://www.coins-e.com/assets/api/coins-e_api_example.py
 # -*- coding: utf-8 -*-
+# Api Documents Url https://www.bithumb.com/u1/US127
 
 # from api_token import *
 
@@ -17,57 +17,85 @@ import hashlib
 import json
 
 class BITHUMB(Exchange):
-    """docstring for BITHUMB.KR"""
+    """docstring for bithumb.com"""
     def __init__(self, api_key, secret):
         self.api_key = api_key
         self.secret = secret
-        self.base_api_url = "https://api.coinone.co.kr"
+        self.base_api_url = "https://api.bithumb.com"
+        self.__currencies = None
         super(BITHUMB, self).__init__()
-        self.name = 'BITHUMB'
+        self.name = str.upper('BITHUMB')
         self.trading_fee = 0.002
+        self.timestamp = 0
 
+    # @property
     # implemented abstract functions
-    def get_tradeable_pairs(self):
-        tradeable_pairs = []
-        markets = self.unauthenticated_request('markets/list/')
-        for m in markets['markets']:
-            tradeable_pairs.append((m['c1'], m['c2']))
-        return tradeable_pairs
 
-    def get_depth(self, base, alt):
-        book = { "bids" : [], "asks" : [] }
-        pair0 = (base, alt)
-        pair, swapped = self.get_validated_pair(pair0)
-        newbase, newalt = pair
-        slug = newbase + "_" + newalt
-        marketdata = self.unauthenticated_request('markets/data/')
-        depth = marketdata['markets'][slug]['marketdepth']
-        if swapped:
-            for bid in depth['bids']:
-                o = Order(float(bid['r']), float(bid['q']))
-                ask = get_swapped_order(o)
-                book['asks'].append(ask)
-            for ask in depth['asks']:
-                o = Order(float(ask['r']), float(ask['q']))
-                bid = get_swapped_order(o)
-                book['bids'].append(o)
+    # def unauthenticated_request(url_suffix):
+    #     url_request_object = urllib2.Request("https://api.bithumb.com/%s" % (url_suffix))
+    #     response = urllib2.urlopen(url_request_object)
+    #     response_json = {}
+    #     try:
+    #         response_content = response.read()
+    #         response_json = json.loads(response_content)
+    #         return response_json
+    #     finally:
+    #         response.close()
+    #     return "failed"
+
+    @property
+    def get_currencies(self):
+        if self.__currencies is None:
+            # tickers = self.unauthenticated_request('public/ticker/all')
+            # self.__currencies = [m for m in tickers['data'].keys() if type(tickers['data'][m]) == dict]
+            tickers = self.unauthenticated_request('public/ticker/all')['data']
+            self.__currencies = [str.lower(m) for m in tickers.keys() if type(tickers[m]) == dict]
+        return self.__currencies
+
+
+    def get_orderbook(self, currency=None):
+        marketdata = {}
+        orderBook = { "bids" : [], "offers" : [] }
+        if currency is None:
+            tmpData = self.unauthenticated_request('public/orderbook/all')['data']
+            self.timestamp = int(tmpData['timestamp'])
+
+            for currency in self.get_currencies:
+                marketdata[currency] = tmpData[currency]
         else:
-            for bid in depth['bids']:
-                o = Order(float(bid['r']), float(bid['q']))
-                book['bids'].append(o)
-            for ask in depth['asks']:
-                o = Order(float(ask['r']), float(ask['q']))
-                book['asks'].append(o)
-        return book
+            marketdata[currency] = self.unauthenticated_request('public/orderbook/%s' % currency)['data']
+            self.timestamp = int(marketdata[currency]['timestamp'])
 
+        for currency in marketdata.keys():
+            # if int(marketdata[currency]['timestamp']) > int(self.timestamp):
+
+            for bid in marketdata[currency]['bids']:
+                o = Order(currency, int(bid['price']), float(bid['quantity']))
+                orderBook['bids'].append(o)
+
+            for ask in marketdata[currency]['asks']:
+                o = Order(currency, int(ask['price']), float(ask['quantity']))
+                orderBook['offers'].append(o)
+        return orderBook
+
+    # def get_highest_bid(self, currency='all'):
+    #     return -1
+
+    # def get_lowest_offer(self, currency='all'):
+    #     return -1
+
+
+    # TODO: 인증 rq 완료후 진행
     def get_balance(self, currency):
-        data = self.authenticated_request('wallet/' + currency + '/', "getwallet")
-        return float(data['wallet']['available'])
+        # data = self.authenticated_request('account/balance/')
+        # return float(data['wallet']['available'])
+        return -1
 
     def get_all_balances(self):
-        data = self.authenticated_request('wallet/all/', "getwallets")
-        balances = {k:float(v["a"]) for k,v in data["wallets"].items()}
-        return balances
+        # data = self.authenticated_request('wallet/all/', "getwallets")
+        # balances = {k:float(v["a"]) for k,v in data["wallets"].items()}
+        # return balances
+        return -1
 
     def submit_order(self, gc, gv, rc, rv):
         pass
@@ -79,8 +107,10 @@ class BITHUMB(Exchange):
         # TODO
         pass
 
-    # COINS-E specific methods
+    # Bithumb specific methods
 
+    # Public API / GET Method
+    # 90 requests per minute
     def unauthenticated_request(self, url_suffix):
         url_request_object = urllib2.Request("%s/%s" % (self.base_api_url, url_suffix))
         response = urllib2.urlopen(url_request_object)
@@ -93,8 +123,8 @@ class BITHUMB(Exchange):
             response.close()
         return "failed"
 
-
-
+    # Private API / POST Method
+    # Account/Order/Transaction API, 6 requests per second
     def authenticated_request(self, url_suffix, method, post_args={}):
         nonce = 1000
         try:
@@ -113,6 +143,7 @@ class BITHUMB(Exchange):
             post_data = urllib.urlencode(post_args)
         except:
             post_data = urllib.parse.urlencode(post_args)
+
         required_sign = hmac.new(self.secret, post_data, hashlib.sha512).hexdigest()
         headers = {}
         headers['key'] = self.api_key
@@ -135,5 +166,4 @@ class BITHUMB(Exchange):
         finally:
             response.close()
         return "failed"
-
 

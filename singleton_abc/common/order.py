@@ -20,5 +20,5 @@ class Order(object):
 
     # 단순 데이터 표출용
     def __repr__(self):
-        return "OrderClass(%s): (%d, %.3f)" % (self.currency, self.p, self.v)
+        return "Order(%s): (%d, %.3f)" % (self.currency, self.p, self.v)
 

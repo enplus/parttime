@@ -22,7 +22,7 @@ class Exchange(abc.ABC):
         self.__currencies = self.get_currencies
 
     def __repr__(self):
-        return self.name + " API(Class)"
+        return "%s" % (self.name)
 
     @abc.abstractmethod
     def get_currencies(self):
@@ -32,7 +32,7 @@ class Exchange(abc.ABC):
         return NotImplemented
 
     @abc.abstractmethod
-    def get_orderbook(self, currency='all'):
+    def get_orderbook(self, currency):
         # 특정 CryptoCurrency북 요청. overloading
         '''
         returns all bids and offers (crypto_currency)

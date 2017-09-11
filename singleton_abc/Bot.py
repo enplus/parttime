@@ -15,25 +15,30 @@ from os.path import abspath
 from common.order import Order  # Order class needs to be present for de-serialization of orders
 from common.utils import get_assets, print_assets
 
+from pprint import pprint
+
+import os
 
 class UpdateDepthThread(threading.Thread):
     """
-    simple class for updating the highest bid and lowest
-    ask rates of each broker
+    simple class for updating the highest bid and lowest offer rates of each broker
     """
-    def __init__(self, broker, crypt_crncy, backtest_data=None, tick_i=0):
+    def __init__(self, broker, currency, backtest_data=None, tick_i=0):
         self.broker = broker
-        self.crypt_crncy = crypt_crncy
+        self.currency = currency
         self.backtest_data = backtest_data
         self.tick_i = tick_i
         threading.Thread.__init__(self)
 
     def run(self):
-        if self.broker.xchg.get_validated_currency(self.crypt_crncy):
+        if self.broker.xchg.get_validated_currency(self.currency):
+            # print('%s:%s [UpdateDepthThread]' % (self.currency, self.broker))
             if self.backtest_data is not None:
-                self.broker.update_orderBook(self.crypt_crncy, self.backtest_data, self.tick_i)
+                self.broker.update_orderBook(self.currency, self.backtest_data, self.tick_i)
             else:
-                self.broker.update_orderBook(self.crypt_crncy)
+                self.broker.update_orderBook(self.currency)
+        else:
+            print('validated_currency not found')
 
 
 class UpdateBalanceThread(threading.Thread):
@@ -68,6 +73,7 @@ class Bot(object):
         self.data_path = abspath(config.TICK_DIR)
         self.trading_enabled = True
         self.tick_i = 0
+        self.debug = config.DEBUG
 
     def start(self, sleep=0):  # for live/paper trading
         start = time.time()
@@ -111,11 +117,11 @@ class Bot(object):
         to be interested in the order prices of anything beyond the 6th best
 
         what is the best way to stucture the data?
-        ideally we would separate by market, then by bids/asks, then by each broker so it would be easy
+        ideally we would separate by market, then by bids/offers, then by each broker so it would be easy
         to find prices.
         but actually this would make the broker update mechanism kind of tough from the perspective of the
         actual trading bot. So we will implement it so that the exchange update tick goes as simply as possible
-        namely we'll first separate by broker, then by market, then by bids/asks
+        namely we'll first separate by broker, then by market, then by bids/offers
 
         this can be quite a lot of data!
         '''
@@ -141,8 +147,8 @@ class Bot(object):
                 name = broker.xchg.name
                 brokerdata = {}
                 for market, d in broker.depth.items():
-                    brokerdata[market] = {'bids': d['bids'][:maxdepth - 1],
-                                          'asks': d['asks'][:maxdepth - 1]}
+                    brokerdata[market] = {'bids'  : d['bids'][:maxdepth - 1],
+                                          'offers': d['offers'][:maxdepth - 1]}
                 marketdata[name] = brokerdata
             data['ticks'].append(marketdata)
             last_tick = time.time()
@@ -153,31 +159,34 @@ class Bot(object):
         pass
 
     def tick(self):
-        self.log.info('tick')
+        start = time.time()
         for broker in self.brokers:
             # clear data so that if API call fails, we don't mistakenly
             # report last tick's data
             broker.clear()
-        for crncy in self.config.CURRENCIES:
-            print('fetching xchg data for %s' % (crncy))
-            # multithreaded update of the crncy on each exchange
+        for currency in self.config.CURRENCIES:
+            # multithreaded update of the currency on each exchange
+
             if self.config.USE_MULTITHREADED:
                 threads = []
                 threadLock = threading.Lock()
                 for broker in self.brokers:
-                    print('MultiThreaded self:%s' % broker.xchg.name)
+                    # print('MultiThreaded self.brokers = %s' % broker.xchg.name)
+
                     # multithreaded update balance
                     # balance_thread = UpdateBalanceThread(broker)
                     # balance_thread.start()
                     # threads.append(balance_thread)
+
                     # multithreaded update depth
-                    depth_thread = UpdateDepthThread(broker, crncy, self.backtest_data, self.tick_i)
+                    depth_thread = UpdateDepthThread(broker, currency, self.backtest_data, self.tick_i)
                     depth_thread.start()
                     threads.append(depth_thread)
                 for t in threads:
                     t.join()  # wait for all update threads to complete
                     elapsed = time.time() - start
                     print('Broker update finished in %d ms' % (elapsed * 1000))
+
             else:
                 # single threaded update
                 for broker in self.brokers:
@@ -185,19 +194,23 @@ class Bot(object):
                     # broker.balances = broker.xchg.get_all_balances()
                     # print(broker.xchg.name)
                     # broker.update_all_balances()
-                    if broker.xchg.get_validated_currency(crncy):
+                    if broker.xchg.get_validated_currency(currency):
                         if self.backtest_data is not None:
-                            broker.update_orderBook(crncy, self.backtest_data, self.tick_i)
-                            print('%s:%s' % (broker.xchg.name, crncy))
+                            broker.update_orderBook(currency, self.backtest_data, self.tick_i)
                         else:
-                            broker.update_orderBook(crncy)
-            # custom function for each trading bot to implement
-            # the default implementation is to do nothing - useful in situations like
-            # data gathering
+                            broker.update_orderBook(currency)
 
             # if self.trading_enabled:
             #     self.trade_pair(crncy)
 
+        if self.debug:
+            os.system('clear')
+
+        self.log.info('tick')
+
+            # custom function for each trading bot to implement
+            # the default implementation is to do nothing - useful in situations like
+            # data gathering
 
 # here is where the pair arbitrage strategy is implemented
 # along with the application loop for watching exchanges
@@ -221,11 +234,11 @@ class DataGatherBot(Bot):
         to be interested in the order prices of anything beyond the 6th best
 
         what is the best way to stucture the data?
-        ideally we would separate by market, then by bids/asks, then by each broker so it would be easy
+        ideally we would separate by market, then by bids/offers, then by each broker so it would be easy
         to find prices.
         but actually this would make the broker update mechanism kind of tough from the perspective of the
         actual trading bot. So we will implement it so that the exchange update tick goes as simply as possible
-        namely we'll first separate by broker, then by market, then by bids/asks
+        namely we'll first separate by broker, then by market, then by bids/offers
 
         this can be quite a lot of data!
         '''
@@ -245,16 +258,20 @@ class DataGatherBot(Bot):
 
             self.tick() # calls Bot's update functions
             marketdata = {}
+
             for broker in self.brokers:
                 name = broker.xchg.name
                 brokerdata = {}
-                print('in start function broker:%s \n-- Data --' % broker.xchg.name)
-                # print(currency, broker.orderBook)
                 for currency, d in broker.orderBook.items():
-                    print(currency, d)
-                    brokerdata[currency] = {'bids' : d['bids'][:maxdepth-1], 'asks': d['asks'][:maxdepth-1]}
+                    # 호가 정리 maxdepth 까지 Slice
+                    brokerdata[currency] = {'bids' : d['bids'][:maxdepth-1], 'offers': d['offers'][:maxdepth-1]}
                 marketdata[name] = brokerdata
-                print(brokerdata)
+
+                if self.debug:
+                    print('### %s ##########' % broker)
+                    pprint(brokerdata)
+
             data['ticks'].append(marketdata)
+
             last_tick = time.time()
             pickle.dump(data, open(filepath, 'wb')) # write to file

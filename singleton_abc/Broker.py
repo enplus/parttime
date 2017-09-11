@@ -18,7 +18,7 @@ class Broker(object):
         self.orders = [] # list of outstanding orders
 
     def __repr__(self):
-        return "[%s] %s" % (self.mode, self.xchg)
+        return "%s" % (self.xchg)
 
     def get_highest_bid(self, currency):
         if currency in self.orderBook and len(self.orderBook[currency]['bids']) > 0:
@@ -54,7 +54,6 @@ class Broker(object):
     def update_orderBook(self, currency, backtest_data=None, tick_i=0):
         # updates the highest_bid and lowest_ask for given pair
         # depths are sorted by best first
-        print('in Thread, %s currency' % currency)
         if backtest_data is not None:
             # load in backtest data provided by the bot
             try:
@@ -75,7 +74,7 @@ class Broker(object):
                 self.orderBook[currency]['bids'].sort(key=lambda x: x.p, reverse=True)
                 self.orderBook[currency]['offers'].sort(key=lambda x: x.p, reverse=False)
             except:
-                self.depth[currency] = {'bids':[],'offers':[]} # keep going
+                self.orderBook[currency] = {'bids':[],'offers':[]} # keep going
                 e = sys.exc_info()[0]
                 print('%s error: %s' % (self.xchg.name, e))
 
@@ -92,7 +91,7 @@ class Broker(object):
         # only clear balance if we are not backtesting.
         if self.mode == 'PAPER' or self.mode == 'LIVE':
             self.balances = {}
-        self.depth = {}
+        self.orderBook = {}
 
     def buy(self, currency, price, volume):
         pass

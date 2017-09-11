@@ -31,9 +31,13 @@ class Logger:
     def info(self, msg):
         self._write(self.BLUE, msg)
 
+    # def mode(self, msg):
+    #     print("%s%s%s" % (self.RED, config.MODE, self.ENDC))
+
     def _write(self, ANSI, msg):
-        t = time.strftime('%b %d, %Y %X %Z')
-        print("%s%s : %s%s" % (ANSI,t,msg,self.ENDC))
+        # t = time.strftime('%b %d, %Y %X %Z')
+        t = time.strftime('%Y/%m/%d %X %Z')
+        print("%s%s)%s %s%s : %s%s" % (self.RED, config.MODE, self.ENDC, ANSI, t, msg, self.ENDC))
 
 def create_brokers(mode, currencies, exchangeNames):
     # returns an array of Broker objects
@@ -43,8 +47,8 @@ def create_brokers(mode, currencies, exchangeNames):
             xchg = CoinONE(config.COINONE_API, config.COINONE_KEY)
         elif (str.upper(name) == 'KORBIT'):
             xchg = KORBIT(config.KORBIT_API, config.KORBIT_KEY)
-        # elif (str.upper(name) == 'BITHUMB'):
-        #     xchg = BITHUMB(config.BITHUMB_API, config.BITHUMB_KEY)
+        elif (str.upper(name) == 'BITHUMB'):
+            xchg = BITHUMB(config.BITHUMB_API, config.BITHUMB_KEY)
         else:
             print('Exchange ' + name + ' not supported!')
             broker = None

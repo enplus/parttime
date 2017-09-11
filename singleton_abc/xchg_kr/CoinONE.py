@@ -35,23 +35,30 @@ class CoinONE(Exchange):
     def get_currencies(self):
         if self.__currencies is None:
             tickers = self.unauthenticated_request('ticker?currency=all')
-            self.__currencies = [m for m in tickers.keys() if type(tickers[m]) == dict]
+            self.__currencies = [str.lower(m) for m in tickers.keys() if type(tickers[m]) == dict]
         return self.__currencies
 
-    def get_orderbook(self, currency='all'):
-        orderBook = { "bids" : [], "offers" : [] }
-        marketdata = self.unauthenticated_request('orderbook?currency=' + currency)
 
-        if int(marketdata['timestamp']) > int(self.timestamp):
-            self.timestamp = int(marketdata['timestamp'])
-            for bid in marketdata['bid']:
+    def get_orderbook(self, currency=None):
+        marketdata = {}
+        orderBook = { "bids" : [], "offers" : [] }
+        if currency is None:
+            for currency in self.get_currencies:
+                marketdata[currency] = self.unauthenticated_request('orderbook?currency=%s' % currency)
+        else:
+            marketdata[currency] = self.unauthenticated_request('orderbook?currency=%s' % currency)
+
+        for currency in marketdata.keys():
+            # if int(marketdata[currency]['timestamp']) > int(self.timestamp):
+            self.timestamp = int(marketdata[currency]['timestamp'])
+
+            for bid in marketdata[currency]['bid']:
                 o = Order(currency, int(bid['price']), float(bid['qty']))
                 orderBook['bids'].append(o)
 
-            for ask in marketdata['ask']:
+            for ask in marketdata[currency]['ask']:
                 o = Order(currency, int(ask['price']), float(ask['qty']))
                 orderBook['offers'].append(o)
-
         return orderBook
 
     # def get_highest_bid(self, currency='all'):
@@ -142,5 +149,4 @@ class CoinONE(Exchange):
         finally:
             response.close()
         return "failed"
-
 

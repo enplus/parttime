@@ -30,6 +30,7 @@ class KORBIT(Exchange):
 
     # @property
     # implemented abstract functions
+
     @property
     def get_currencies(self):
         '''
@@ -42,27 +43,26 @@ class KORBIT(Exchange):
         return self.__currencies
 
 
-    def get_orderbook(self, currency='all'):
+    def get_orderbook(self, currency=None):
         marketdata = {}
         orderBook = { "bids" : [], "offers" : [] }
-        if currency == 'all':
-            marketdata['btc'] = self.unauthenticated_request("v1/orderbook?currency_pair=btc_krw")
-            marketdata['eth'] = self.unauthenticated_request("v1/orderbook?currency_pair=eth_krw")
-            marketdata['etc'] = self.unauthenticated_request("v1/orderbook?currency_pair=etc_krw")
-            marketdata['xrp'] = self.unauthenticated_request("v1/orderbook?currency_pair=xrp_krw")
+        if currency is None:
+            for currency in self.get_currencies:
+                marketdata[currency] = self.unauthenticated_request("v1/orderbook?currency_pair=%s_krw" % currency)
         else:
-            marketdata[currency] = self.unauthenticated_request(("v1/orderbook?currency_pair=%s_krw" % currency))
+            marketdata[currency] = self.unauthenticated_request("v1/orderbook?currency_pair=%s_krw" % currency)
 
-        if int(marketdata['timestamp']) > int(self.timestamp):
-            self.timestamp = int(marketdata['timestamp'])
-            for bid in marketdata['bids']:
+        for currency in marketdata.keys():
+            # if int(marketdata[currency]['timestamp']) > int(self.timestamp):
+            self.timestamp = int(marketdata[currency]['timestamp'])
+
+            for bid in marketdata[currency]['bids']:
                 o = Order(currency, int(bid[0]), float(bid[1]))
                 orderBook['bids'].append(o)
 
-            for ask in marketdata['asks']:
+            for ask in marketdata[currency]['asks']:
                 o = Order(currency, int(ask[0]), float(ask[1]))
                 orderBook['offers'].append(o)
-
         return orderBook
 
     # def get_highest_bid(self, currency='all'):
@@ -99,12 +99,16 @@ class KORBIT(Exchange):
     # Public API / GET Method
     # 90 requests per minute
     def unauthenticated_request(self, url_suffix):
-        try:
-            url_request_object = urllib2.Request("%s/%s" % (self.base_api_url, url_suffix))
-            response = urllib2.urlopen(url_request_object)
-        except:
-            url_request_object = urllib2.Request("%s/%s" % (self.base_api_url, url_suffix), headers={'User-Agent': 'Mozilla/5.0'})
-            response = urllib2.urlopen(url_request_object)
+        #try except 형태로 해봤자 느려지기만 함(두번 호출하는 꼴...) 걍 후자로
+        # try:
+        #     url_request_object = urllib2.Request("%s/%s" % (self.base_api_url, url_suffix))
+        #     response = urllib2.urlopen(url_request_object)
+        # except:
+        #     url_request_object = urllib2.Request("%s/%s" % (self.base_api_url, url_suffix), headers={'User-Agent': 'Mozilla/5.0'})
+        #     response = urllib2.urlopen(url_request_object)
+
+        url_request_object = urllib2.Request("%s/%s" % (self.base_api_url, url_suffix), headers={'User-Agent': 'Mozilla/5.0'})
+        response = urllib2.urlopen(url_request_object)
 
         try:
             response_content = response.read()

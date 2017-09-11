@@ -14,7 +14,9 @@ import api_config as config
 # print('done!')
 
 brokers = create_brokers('PAPER', config.CURRENCIES, config.EXCHANGES)
+
 bot = DataGatherBot(config, brokers)
-bot.start(sleep=1, duration=60 * 60 * 4, maxdepth=6) # 5 hours of data, one minute intervals
+# maxdepth 체크할 호가 개수(-1)
+bot.start(sleep=1, duration=60 * 60 * 4, maxdepth=4) # 5 hours of data, one minute intervals
 print('Done!')
 
