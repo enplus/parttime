@@ -10,6 +10,8 @@ from xchg_kr.CoinONE import CoinONE
 from xchg_kr.Korbit import KORBIT
 from xchg_kr.Bithumb import BITHUMB
 
+# 말이 Logger이지 걍 프린트할때 양식 지정하는 용도 \033어쩌고 이건 다
+# 리눅스 상에서 색상을 표현하는 용도
 class Logger:
     if str.lower(sys.platform) != "win32":
         PURPLE = '\033[95m' # PURPLE
@@ -46,6 +48,9 @@ class Logger:
         t = time.strftime('%Y/%m/%d %X %Z')
         print("%s%s)%s %s%s : %s%s" % (self.RED, config.MODE, self.ENDC, ANSI, t, msg, self.ENDC))
 
+# create_broker(broker(거래소 객체) 생성용)
+# brokers라는 List형태에 최종적으로 생성됨.
+# 각 거래소객체는 싱글턴으로 구현되어서 하나뿐인 객체로 존재함
 def create_brokers(mode, currencies, exchangeNames):
     # returns an array of Broker objects
     brokers = []
@@ -65,8 +70,17 @@ def create_brokers(mode, currencies, exchangeNames):
         broker = Broker(mode, xchg)
 
         if mode == 'BACKTEST':
-#            broker.balances = config.PAPER_BALANCE
-            broker.balances = broker.xchg.get_all_balances() # use real starting balances.
+            # 임의로 잔고를 지정해서 처리하도록 수정?
+            # broker.balances = config.PAPER_BALANCE
+            pass
+        elif mode == 'PAPER':
+            # 임의로 잔고를 지정해서 처리하도록 수정?
+            pass
+        elif mode == 'TRADE':
+            # use real starting balances.
+            broker.balances = broker.xchg.get_all_balances()
+            pass
+
         brokers.append(broker)
     return brokers
 

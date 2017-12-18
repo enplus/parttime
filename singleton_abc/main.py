@@ -5,7 +5,6 @@ from Bot import DataGatherBot, ArbitrageBot
 
 import api_config as config
 
-
 ### PAPER 이라고 정의한
 # brokers = create_brokers('PAPER', config.CURRENCIES, config.EXCHANGES)
 # bot = ArbitrageBot(config, brokers)

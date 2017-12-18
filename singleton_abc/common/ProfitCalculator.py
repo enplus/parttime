@@ -4,6 +4,13 @@ from common.order import Order
 
 from pprint import pprint
 
+# 새로 짜야함 ^_^
+# 실제 손익을 계산해서 이득인 경우만 거래가 처리되도록 변경해야함
+# 거래소 객체에서 orderbook라고 해서 Dict형태로 bids/offers가 존재하는데
+# 0부터 최우선호가임.
+# ex) korbit['bids'][0] 은 최우선 매수호가
+#     korbit['offers'][0] 은 최우선 매도호가
+
 class ProfitCalculator(object):
     """
     class for computing a profit matrix from a given set of brokers

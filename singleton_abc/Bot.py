@@ -20,6 +20,11 @@ from pprint import pprint
 
 import os
 
+# 스레드 처리하는 클래스
+# Bot클래스의 tick() 함수 내에서 UpdateDepthThread를 수행함. request 하는
+# 주기를 정할수 있음
+# 스레드로 Broker클래스의 Update_orderbook를 실행하는데
+# 이하의 실제 처리는 각 Broker(거래소) 객체들의 get_orderbook를 수행
 class UpdateDepthThread(threading.Thread):
     """
     simple class for updating the highest bid and lowest offer rates of each broker
@@ -220,6 +225,11 @@ class Bot(object):
 # here is where the pair arbitrage strategy is implemented
 # along with the application loop for watching exchanges
 # For compactness, only the top 10
+# DataGatherBot은 logging만 하는 용도? 인듯. Backtest를 위해 파일로 기록후
+# 나중에 처리됨
+# 아직 구현안됨 프린트로 처리
+# Bot에서 상속되는형태 ArbitrageBot/DataGatherBot 동일
+# 차이점은 실 거래되는용도와 로깅
 class DataGatherBot(Bot):
     def __init__(self, config, brokers):
         super(DataGatherBot, self).__init__(config, brokers)
@@ -294,6 +304,8 @@ class DataGatherBot(Bot):
         pass
 
 
+# ArbitrageBot은 실제 트레이딩을 위한 용도
+# 아직 구현안됨 프린트로 처리
 class ArbitrageBot(Bot):
     def __init__(self, config, brokers):
         super(ArbitrageBot, self).__init__(config, brokers)
