@@ -7,6 +7,7 @@ import threading
 import time
 from common.utils import Logger
 from common.ProfitCalculator import ProfitCalculator
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -74,6 +75,9 @@ class Bot(object):
         self.trading_enabled = True
         self.tick_i = 0
         self.debug = config.DEBUG
+        self.debug_cls = config.DEBUG_CLEARSCREEN
+        self.debug_mktdata = config.DEBUG_MARKETDATA
+        self.debug_spread = config.DEBUG_SPREAD
 
     def start(self, sleep=0):  # for live/paper trading
         start = time.time()
@@ -155,7 +159,7 @@ class Bot(object):
             pickle.dump(data, open(filepath, 'wb'))  # write to file
         self.trading_enabled = False
 
-    def trade_crypt_crncy(self, crypt_crncy):
+    def trade (self, currency):
         pass
 
     def tick(self):
@@ -200,13 +204,14 @@ class Bot(object):
                         else:
                             broker.update_orderBook(currency)
 
-            # if self.trading_enabled:
-            #     self.trade_pair(crncy)
+            if self.trading_enabled:
+                self.trade(currency)
 
-        if self.debug:
+        if self.debug_mktdata and self.debug_cls:
             os.system('clear')
 
-        self.log.info('tick')
+        # self.log.tickinfo('tick', bot_info=('[%s]' % '/'.join(self.config.CURRENCIES)))
+        self.log.tickinfo('/'.join(self.config.CURRENCIES), bot_info='')
 
             # custom function for each trading bot to implement
             # the default implementation is to do nothing - useful in situations like
@@ -263,11 +268,11 @@ class DataGatherBot(Bot):
                 name = broker.xchg.name
                 brokerdata = {}
                 for currency, d in broker.orderBook.items():
-                    # 호가 정리 maxdepth 까지 Slice
+                    # quote slicing
                     brokerdata[currency] = {'bids' : d['bids'][:maxdepth-1], 'offers': d['offers'][:maxdepth-1]}
                 marketdata[name] = brokerdata
 
-                if self.debug:
+                if self.debug_mktdata:
                     print('### %s ##########' % broker)
                     pprint(brokerdata)
 
@@ -275,3 +280,56 @@ class DataGatherBot(Bot):
 
             last_tick = time.time()
             pickle.dump(data, open(filepath, 'wb')) # write to file
+
+    def trade(self, currency):
+        # - initial test - compare high_bid and low_ask prices
+        # - if spread is positive, fetch market depth and re-assess arb opportunity
+
+        pc = ProfitCalculator(self.brokers, currency)
+        if self.debug_spread:
+            print('%s) %s' % (currency, self.brokers))
+        if pc.check_profits():
+            # self.log.ok(("%s) Found!!" % currency), msg_type='trade')
+            pass
+        pass
+
+
+class ArbitrageBot(Bot):
+    def __init__(self, config, brokers):
+        super(ArbitrageBot, self).__init__(config, brokers)
+
+    def trade(self, currency):
+        # - initial test - compare high_bid and low_ask prices
+        # - if spread is positive, fetch market depth and re-assess arb opportunity
+
+        pc = ProfitCalculator(self.brokers, currency)
+        if self.debug_spread:
+            print('%s) %s' % (currency, self.brokers))
+        if pc.check_profits():
+            # self.log.ok(("%s) Found!!" % currency), msg_type='trade')
+            pass
+        pass
+        #     (bidder, asker, profit_obj) = pc.get_best_trade()
+        #     bidder_order = profit_obj["bidder_order"]
+        #     asker_order = profit_obj["asker_order"]
+        #     if self.config.MODE == 'PAPER' or self.config.MODE == 'BACKTEST':
+
+        #         bidder_tx = 1.0 - bidder.xchg.trading_fee
+        #         asker_tx = 1.0 - asker.xchg.trading_fee
+        #         bidder.balances[base] -= bidder_order.v
+        #         bidder.balances[alt] += bidder_order.p * bidder_order.v * bidder_tx
+        #         asker.balances[base] += asker_order.v * asker_tx
+        #         asker.balances[alt] -= asker_order.p * asker_order.v
+        #         print('Success! Bought %f %s for %f %s from %s and sold %f %s for %f %s at %s' %
+        #               (asker_order.v*asker_tx,base,asker_order.p* asker_order.v,alt,asker.xchg.name,
+        #                bidder_order.v,base,bidder_order.p * bidder_order.v * bidder_tx,alt,bidder.xchg.name))
+        #         print('Profit : %f %s' % (bidder_order.p * bidder_order.v * bidder_tx - asker_order.p * asker_order.v, alt))
+        #     else:
+        #         # live trade - do this manually for now!
+        #         print('Profitable Arbitrage Opportunity Detected!! Buy %f %s for %f %s from %s and sell %f %s for %f %s at %s' %
+        #               (asker_order.v*asker_tx,base,asker_order.p* asker_order.v,alt,asker.xchg.name,
+        #                bidder_order.v,base,bidder_order.p * bidder_order.v * bidder_tx,alt,bidder.xchg.name))
+        #         print('Profit : %f %s' % (bidder_order.p * bidder_order.v * bidder_tx - asker_order.p * asker_order.v, alt))
+# #                 asker.buy(pair, asker_order.p, asker_order.v)
+# #                 bidder.sell(pair, bidder_order.p, bidder_order.v)
+

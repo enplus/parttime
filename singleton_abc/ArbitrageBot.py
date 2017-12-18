@@ -3,18 +3,22 @@
 
 from Bot import Bot
 from common.ProfitCalculator import ProfitCalculator
+from common.utils import Logger
 
 class ArbitrageBot(Bot):
     def __init__(self, config, brokers):
         super(ArbitrageBot, self).__init__(config, brokers)
 
-    def trade_pair(self, currency):
+    def trade(self, currency):
         # - initial test - compare high_bid and low_ask prices
         # - if spread is positive, fetch market depth and re-assess arb opportunity
-        pass
 
-        # pc = ProfitCalculator(self.brokers, currency)
-        # if pc.check_profits():
+        pc = ProfitCalculator(self.brokers, currency)
+        print('profit calc - brokers %s' % self.brokers)
+        if pc.check_profits():
+            pass
+            # self.log.ok(("%s) Found!!" % currency), msg_type='trade')
+        pass
         #     (bidder, asker, profit_obj) = pc.get_best_trade()
         #     bidder_order = profit_obj["bidder_order"]
         #     asker_order = profit_obj["asker_order"]

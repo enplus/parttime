@@ -1,9 +1,12 @@
+
 from common.utils import create_brokers
-from ArbitrageBot import ArbitrageBot
-from Bot import DataGatherBot
+# from ArbitrageBot import ArbitrageBot
+from Bot import DataGatherBot, ArbitrageBot
 
 import api_config as config
 
+
+### PAPER 이라고 정의한
 # brokers = create_brokers('PAPER', config.CURRENCIES, config.EXCHANGES)
 # bot = ArbitrageBot(config, brokers)
 
@@ -14,9 +17,12 @@ import api_config as config
 # print('done!')
 
 brokers = create_brokers('PAPER', config.CURRENCIES, config.EXCHANGES)
-
-bot = DataGatherBot(config, brokers)
+# gatherbot = DataGatherBot(config, brokers)
 # maxdepth 체크할 호가 개수(-1)
-bot.start(sleep=1, duration=60 * 60 * 4, maxdepth=4) # 5 hours of data, one minute intervals
+# gatherbot.start(sleep=1, duration=60 * 60 * 4, maxdepth=4) # 5 hours of data, one minute intervals
+
+# arbiragebot의 경우
+trade_bot = ArbitrageBot(config, brokers)
+trade_bot.start(sleep=1)
 print('Done!')
 

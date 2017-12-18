@@ -1,4 +1,5 @@
 # class for Broker
+# Broker(거래소 객체)
 import sys
 
 class Broker(object):
@@ -20,12 +21,14 @@ class Broker(object):
     def __repr__(self):
         return "%s" % (self.xchg)
 
+    # 최우선 매수호가
     def get_highest_bid(self, currency):
         if currency in self.orderBook and len(self.orderBook[currency]['bids']) > 0:
             return self.orderBook[currency]['bids'][0].p # p=price & q=qty
         return None
 
-    def get_lowest_offer(self, currency):
+    # 최우선 매도호가
+    def get_lowest_ask(self, currency):
         if currency in self.orderBook and len(self.orderBook[currency]['offers']) > 0:
             return self.orderBook[currency]['offers'][0].p # p=price & q=qty
         else:

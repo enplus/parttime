@@ -106,7 +106,7 @@ class Exchange(abc.ABC):
         ALT we would end up trading, so therefore we must also convert the hardcoded min volumes
         using the current going price for the order.
         '''
-        test = self.get_validated_currency(currency)
+        available = self.get_validated_currency(currency)
         if test is not None:
             true_pair, swapped = test
             if not swapped:

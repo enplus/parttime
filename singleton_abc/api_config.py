@@ -19,14 +19,43 @@ KORBIT_KEY = "ObahmRRmJK36ve99j4Ckg7xHxsIgUzkKv60BINvcImV1tA2lhp6c4g5Sa4GzD"
 
 # 실 거래할 거래소 List, CryptoCurrency
 EXCHANGES = ["COINONE", "KORBIT", "BITHUMB"]
-# lowercase
-# CURRENCIES = [ "btc", "eth", "etc" ]
-CURRENCIES = [ "btc", "eth" ]
+
+# currency is lowercase!!!
+CURRENCIES = [ "btc", "eth", "etc" ]
+# CURRENCIES = [ "btc", "eth" ]
 
 TICK_DIR = './backtest_data'
-# USE_MULTITHREADED = False
-USE_MULTITHREADED = True
+USE_MULTITHREADED = False
+# USE_MULTITHREADED = True
 
 MODE = 'BACKTEST'
-DEBUG = True
+
+# Quote
+# Spread
+DEBUG = False
+# DEBUG = True
+DEBUG_MARKETDATA = False
+DEBUG_CLEARSCREEN = False
+DEBUG_SPREAD = False
+
+
+VALUE_REF = {
+             'BTC':500.0,   # bitcoin
+             'LTC':15.0,    # litecoin
+             'DOGE':0.0015, # dogecoin
+             'PPC':4.00,    # peercoin
+             'NMC':3.90,    # namecoin
+             'QRK':0.07,    # quarkcoin
+             'NXT':0.056,   # nxt
+             'WDC':0.18     # worldcon
+             }
+
+# PROFIT_THRESH = { k:0.01/v for k,v in VALUE_REF.items() }
+# CryptoCurrency LowerCase!
+MIN_SPREAD = {
+        'btc': 5000,  # cf) 4,500,000 KRW
+        'etc': 0.01,  # cf) 17,000 KRW
+        'eth': 0.01,  # cf) 350,000 KRW
+        'xrp': 0.01   # cf) 250 KRW
+        }
 

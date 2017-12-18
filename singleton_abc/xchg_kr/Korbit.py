@@ -25,7 +25,9 @@ class KORBIT(Exchange):
         self.__currencies = None
         super(KORBIT, self).__init__()
         self.name = str.upper('KORBIT')
-        self.trading_fee = 0.002
+        # KORBIT Maker_fee = 0.1% / Taker_fee = 0.2%
+        self.trading_fee_ratio = 0.2 / 100
+        self.trading_fee = 0.02 / 100
         self.timestamp = 0
 
     # @property

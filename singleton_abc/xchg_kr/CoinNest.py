@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Api Documents Url https://doc.coinone.co.kr
+# Api Documents Url https://www.coinnest.co.kr/doc/intro.html
 
 # from api_token import *
 
@@ -16,15 +16,15 @@ import hmac
 import hashlib
 import json
 
-class CoinONE(Exchange):
-    """docstring for CoinONE.co.kr"""
+class CoinNest(Exchange):
+    """docstring for CoinNest.co.kr"""
     def __init__(self, api_key, secret):
         self.api_key = api_key
         self.secret = secret
-        self.base_api_url = "https://api.coinone.co.kr"
+        self.base_api_url = "https://api.coinnest.co.kr"
         self.__currencies = None
-        super(CoinONE, self).__init__()
-        self.name = str.upper('COINONE')
+        super(CoinNest, self).__init__()
+        self.name = str.upper('CoinNest')
         self.trading_fee_ratio = 0.15 / 100 # Margin_Trading 0.15%
         self.trading_fee = 0.0005  # 2500Krw
         self.timestamp = 0
@@ -35,7 +35,7 @@ class CoinONE(Exchange):
     @property
     def get_currencies(self):
         if self.__currencies is None:
-            tickers = self.unauthenticated_request('ticker?currency=all')
+            tickers = self.unauthenticated_request('/api/pub/ticker?coin=btc')
             self.__currencies = [str.lower(m) for m in tickers.keys() if type(tickers[m]) == dict]
         return self.__currencies
 
@@ -45,9 +45,9 @@ class CoinONE(Exchange):
         orderBook = { "bids" : [], "offers" : [] }
         if currency is None:
             for currency in self.get_currencies:
-                marketdata[currency] = self.unauthenticated_request('orderbook?currency=%s' % currency)
+                marketdata[currency] = self.unauthenticated_request('api/pub/depth?coin=%s' % currency)
         else:
-            marketdata[currency] = self.unauthenticated_request('orderbook?currency=%s' % currency)
+            marketdata[currency] = self.unauthenticated_request('api/pub/depth?coin=%s' % currency)
 
         for currency in marketdata.keys():
             # if int(marketdata[currency]['timestamp']) > int(self.timestamp):
@@ -91,7 +91,7 @@ class CoinONE(Exchange):
         # TODO
         pass
 
-    # COINONE specific methods
+    # CoinNest specific methods
 
     # Public API / GET Method
     # 90 requests per minute

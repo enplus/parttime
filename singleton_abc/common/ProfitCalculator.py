@@ -1,6 +1,8 @@
 import api_config as config
-from common.utils import total_base_volume
+from common.utils import total_base_volume, Logger
 from common.order import Order
+
+from pprint import pprint
 
 class ProfitCalculator(object):
     """
@@ -13,6 +15,7 @@ class ProfitCalculator(object):
     def __init__(self, brokers, currency):
         self.brokers = brokers
         self.currency = currency
+        self.log = Logger()
         """
         first key = bidder exchange
         second key = asker exchange
@@ -23,19 +26,20 @@ class ProfitCalculator(object):
         self.profit_spread = {} # price spreads with transaction fees applied
         self.profits = {}       # actual ALT profits, accounting for balances and volumes
 
-        self.update_balances()
+        # self.update_balances()
         self.update_profit_spread() # automatically perform calculations upon initialization
 
     def update_profit_spread(self):
         # computes the profit spread, accounting for trading fees
         self.profit_spread = {b.xchg.name:{a.xchg.name : 0 for a in self.brokers} for b in self.brokers}
-        self.prices = {b.xchg.name : {"bid": b.get_highest_bid(self.pair),
-                                 "ask": b.get_lowest_ask(self.pair)}  for b in self.brokers}
+        self.prices = {b.xchg.name : {"hbid": b.get_highest_bid(self.currency),
+                                 "lask": b.get_lowest_ask(self.currency)}  for b in self.brokers}
+
         for bidder in self.brokers: # bidder names
             for asker in self.brokers: # asker names
                 (b,a) = (bidder.xchg.name, asker.xchg.name)
-                hi_bid = self.prices[b]['bid']
-                lo_ask = self.prices[a]['ask']
+                hi_bid = self.prices[b]['hbid']
+                lo_ask = self.prices[a]['lask']
                 if hi_bid is None or lo_ask is None:
                     self.profit_spread[b][a] = None
                 else:
@@ -43,10 +47,11 @@ class ProfitCalculator(object):
                     self.profit_spread[b][a] = self.get_profit_spread(bidder.xchg.trading_fee,hi_bid,asker.xchg.trading_fee,lo_ask)
 
     def update_balances(self):
-        base, alt = self.pair
-        for broker in self.brokers:
-            self.balances[broker.xchg.name] = { "base" : broker.balances.get(base,0),
-                                               "alt" : broker.balances.get(alt,0) }
+        pass
+        # base, alt = self.pair
+        # for broker in self.brokers:
+        #     self.balances[broker.xchg.name] = { "base" : broker.balances.get(base,0),
+        #                                        "alt" : broker.balances.get(alt,0) }
 
     def check_profits(self):
         # examine each pair for profits. A number of trivial reject tests are performed:
@@ -54,15 +59,28 @@ class ProfitCalculator(object):
         # 1) account needs to have sufficient balance to fill the minimum order volume
         # 2) after computing the max tradeable volume (limited by my balance),
         # trade needs to profit at least 0.01 USD.
-        base, alt = self.pair
         success = False
         self.profits = {b.xchg.name:{a.xchg.name : None for a in self.brokers} for b in self.brokers}
+
+        # self.profits example)
+        # {'broker1': {'broker1': None, 'broker2': None, 'broker3': None},
+        #  'broker2': {'broker1': None, 'broker2': None, 'broker3': None},
+        #  'broker3': {'broker1': None, 'broker2': None, 'broker3': None}}
+
         for bidder in self.brokers: # bidder names
             for asker in self.brokers: # asker names
                 (b,a) = (bidder.xchg.name, asker.xchg.name)
                 spread = self.profit_spread[b][a]
-                # print(spread)
-                if spread is not None and spread > config.PROFIT_THRESH[alt]: # must profit > 0.01 USD to trade at all
+
+                if spread is not None and spread > config.MIN_SPREAD[self.currency]:
+
+                    if spread > config.MIN_SPREAD[self.currency]: # must profit > 0.01 USD to trade at all
+                        self.log.ok(("%s spread Found) %.2f !!" %
+                            (self.currency, spread)), msg_type='trade')
+                        # print("Bid/Ask) %.4s/%.4s - Profits:%.2f" % (b, a, spread))
+                    elif config.DEBUG_SPREAD: # Debug True 일시는 Total Spread Print
+                        print("Bid/Ask) %.4s/%.4s - SpreadValue:%.2f" % (b, a, spread))
+
                     # Algorithm: iteratively increase the volume on the volume-limited
                     # exchange until profits stop increasing (i.e. arb opportunity lost)
                     # ideally we want to increase BOTH until profits no longer increase,
@@ -70,15 +88,23 @@ class ProfitCalculator(object):
                     # temporary solution: trade EXACTLY the min volume base order
                     # thereby saving you the trouble of deciding which to fix, etc.
                     # (note: we will scale appropriately to account for trading fees)
-                    slug = base + "_" + alt
-                    bids = bidder.depth[slug]['bids']
-                    asks = asker.depth[slug]['asks']
-                    profit_obj = self.calculate_order(bidder, bids, asker, asks)
+                    bids = bidder.orderBook[self.currency]['bids']
+                    asks = asker.orderBook[self.currency]['offers']
+
+                    print('Sell[%s] %d/%.3f Buy[%s] %d/%.3f -> %.2f Profits' % (
+                            b, bids[0].p, bids[0].v, a, asks[0].p, asks[0].v,
+                            spread * min(bids[0].v, asks[0].v)))
+
+                    #tmp
+                    success = True
+
+
+                    # profit_obj = self.calculate_order_simple(bidder, bids, asker, asks)
                     # after calculating the order, even though the spread is profitable, our balances make it not possible.
                     # i.e. small magnitudes, requires too much shuffling money around to profit such a small amount.
-                    if profit_obj is not None and profit_obj["profit"] > config.PROFIT_THRESH[alt]:
-                        self.profits[b][a] = profit_obj
-                        success = True
+                    # if profit_obj is not None and profit_obj["profit"] > config.PROFIT_THRESH[alt]:
+                    #     self.profits[b][a] = profit_obj
+                    #     success = True
 
         return success # return True if there are any profits at all
 
@@ -91,11 +117,10 @@ class ProfitCalculator(object):
         the best price. cases where the second best is ``hidden'' under a small order
         will be ignored for now.
         """
-        base, alt = self.pair
         """
         first check - do the best orders have sufficient volume to satisfy xchg minimums?
         """
-        bidder_min_base_vol = bidder.xchg.get_min_vol((base,alt), None) # temp hack - in pair arbitrage we assume we're always trading on valid markets
+        bidder_min_base_vol = bidder.xchg.get_min_vol((base,alt), None)
         asker_min_base_vol = asker.xchg.get_min_vol((base,alt), None)
         min_base_vol = min(bidder_min_base_vol, asker_min_base_vol) # remember, we have to trade approx same amount
         if (bids[0].v < min_base_vol):

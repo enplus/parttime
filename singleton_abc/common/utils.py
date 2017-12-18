@@ -17,7 +17,7 @@ class Logger:
         GREEN = '\033[92m'  # GREEN
         YELLOW = '\033[93m' # YELLOW
         RED = '\033[91m'    # RED
-        ENDC = '\033[0m'    # ??
+        ENDC = '\033[0m'    # NORMAL
 
     def warning(self, msg):
         self._write(self.YELLOW, msg)
@@ -25,11 +25,18 @@ class Logger:
     def error(self, msg):
         self._write(self.RED, msg)
 
-    def ok(self, msg):
-        self._write(self.GREEN, msg)
+    def ok(self, msg, msg_type):
+        if msg_type == 'trade':
+            print("%s%s)%s" % (self.GREEN, msg, self.ENDC))
+        else:
+            self._write(self.GREEN, msg)
 
     def info(self, msg):
         self._write(self.BLUE, msg)
+
+    def tickinfo(self, msg, bot_info=None):
+        t = time.strftime('%y/%m/%d %X %Z')
+        print("%s%s)%s %s%s : %s :%s %s" % (self.PURPLE, config.MODE, self.ENDC, self.BLUE, t, msg, self.ENDC, bot_info))
 
     # def mode(self, msg):
     #     print("%s%s%s" % (self.RED, config.MODE, self.ENDC))
