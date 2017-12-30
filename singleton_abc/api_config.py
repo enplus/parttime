@@ -1,33 +1,44 @@
 # COINONE_MKT = ["btc", "bch", "eth", "etc", "xrp", "qtum"]
 # BITHUMB_MKT = ["btc", "bch", "eth", "etc", "xrp", "qtum"]
 
-gmail = 'double'
+#gmail = 'doublebind96'
 COINONE_NM  = "DoubleCat"
 COINONE_API = "99782586-cd66-41d8-8969-9255b7b3a045"
 COINONE_KEY = "c84ff8be-e32c-4f50-8795-38e73e5582f9"
 COINONE_VER = "v2" # url에 사용
 
-gmail = 'dbx'
+#gmail = 'dbx?'
 BITHUMB_NM  = ""
-BITHUMB_API = "AAA"
-BITHUMB_KEY = "BBBC"
+BITHUMB_API = "Null"
+BITHUMB_KEY = "Null"
 
+#gmail = 'doublebind96'
 KORBIT_NM  = ""
 KORBIT_API = "2Cv2W7x3SO9IrBbaZbbCJf2AbIWc9XuHKXqIw8BzqNbV7MTh4x7sf2CwjxSRE"
 KORBIT_KEY = "ObahmRRmJK36ve99j4Ckg7xHxsIgUzkKv60BINvcImV1tA2lhp6c4g5Sa4GzD"
 
+#gmail = 'doublebind96'
+COINNEST_NM  = ""
+COINNEST_API = "Null"
+COINNEST_KEY = "Null"
+
+#gmail = 'goog_acc@doublebind96'
+CEXIO_NM  = ""
+CEXIO_API = "Null"
+CEXIO_KEY = "Null"
+
+BINANCE_NM  = ""
+BINANCE_API = "Null"
+BINANCE_KEY = "Null"
 
 # 실 거래할 거래소 List, CryptoCurrency
 EXCHANGES = ["COINONE", "KORBIT", "BITHUMB"]
 
 # currency is lowercase!!!
 CURRENCIES = [ "btc", "eth", "etc" ]
-# CURRENCIES = [ "btc", "eth" ]
 
 TICK_DIR = './backtest_data'
-USE_MULTITHREADED = False
-# USE_MULTITHREADED = True
-
+USE_MULTITHREADED = False  # or True
 MODE = 'BACKTEST'
 
 # Quote
@@ -37,7 +48,6 @@ DEBUG = False
 DEBUG_MARKETDATA = False
 DEBUG_CLEARSCREEN = False
 DEBUG_SPREAD = False
-
 
 VALUE_REF = {
              'BTC':500.0,   # bitcoin

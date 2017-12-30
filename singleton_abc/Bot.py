@@ -222,8 +222,6 @@ class Bot(object):
             # the default implementation is to do nothing - useful in situations like
             # data gathering
 
-# here is where the pair arbitrage strategy is implemented
-# along with the application loop for watching exchanges
 # For compactness, only the top 10
 # DataGatherBot은 logging만 하는 용도? 인듯. Backtest를 위해 파일로 기록후
 # 나중에 처리됨
@@ -304,6 +302,8 @@ class DataGatherBot(Bot):
         pass
 
 
+# here is where the pair arbitrage strategy is implemented
+# along with the application loop for watching exchanges
 # ArbitrageBot은 실제 트레이딩을 위한 용도
 # 아직 구현안됨 프린트로 처리
 class ArbitrageBot(Bot):
@@ -345,3 +345,6 @@ class ArbitrageBot(Bot):
 # #                 asker.buy(pair, asker_order.p, asker_order.v)
 # #                 bidder.sell(pair, bidder_order.p, bidder_order.v)
 
+class QuoteBot(Bot):
+    def __init__(self, config, brokers):
+        super(QuoteBot, self).__init__(config, brokers)

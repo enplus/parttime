@@ -1,8 +1,5 @@
-
 from common.utils import create_brokers
-# from ArbitrageBot import ArbitrageBot
 from Bot import DataGatherBot, ArbitrageBot
-
 import api_config as config
 
 ### PAPER 이라고 정의한
