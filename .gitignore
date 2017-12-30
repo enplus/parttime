@@ -30,6 +30,7 @@ pip-delete-this-directory.txt
 .cache
 nosetests.xml
 coverage.xml
+.singleton_abc/api_config.py
 
 # Translations
 *.mo
