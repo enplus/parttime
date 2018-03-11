@@ -10,6 +10,7 @@ from xchg_kr.CoinONE import CoinONE
 from xchg_kr.Korbit import KORBIT
 from xchg_kr.Bithumb import BITHUMB
 from xchg_kr.CoinNest import CoinNest
+from xchg_kr.Gopax import GOPAX
 
 # 말이 Logger이지 걍 프린트할때 양식 지정하는 용도 \033어쩌고 이건 다
 # 리눅스 상에서 색상을 표현하는 용도
@@ -64,6 +65,8 @@ def create_brokers(mode, currencies, exchangeNames):
             xchg = BITHUMB(config.BITHUMB_API, config.BITHUMB_KEY)
         elif (str.upper(name) == 'COINNEST'):
             xchg = COINNEST(config.COINNEST_API, config.COINNEST_KEY)
+        elif (str.upper(name) == 'GOPAX'):
+            xchg = GOPAX(config.GOPAX_API, config.GOPAX_KEY)
         else:
             print('Exchange ' + name + ' not supported!')
             broker = None

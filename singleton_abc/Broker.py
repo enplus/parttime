@@ -19,7 +19,7 @@ class Broker(object):
         self.orders = [] # list of outstanding orders
 
     def __repr__(self):
-        return "%s" % (self.xchg)
+        return "%s from Brokers.py" % (self.xchg)
 
     # 최우선 매수호가
     def get_highest_bid(self, currency):
@@ -88,6 +88,7 @@ class Broker(object):
         if (self.mode == 'LIVE'):
             self.balances = self.xchg.get_all_balances()
         elif (self.mode == 'PAPER' or self.mode == 'BACKTEST'):
+            print('%s mode - passed' % self.mode)
             pass
 
     def clear(self):

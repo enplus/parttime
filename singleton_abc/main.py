@@ -12,7 +12,11 @@ import api_config as config
 # bot.backtest(backtest_data) # start should probably be modified to also allow time ranges (i.e. if i want to run my live trader for 2 hours)
 # print('done!')
 
-brokers = create_brokers('PAPER', config.CURRENCIES, config.EXCHANGES)
+brokers = create_brokers('LIVE', config.CURRENCIES, config.EXCHANGES)
+gp = brokers[2]
+# gp.update_all_balances()
+# gp.xchg.get_all_balances()
+
 # gatherbot = DataGatherBot(config, brokers)
 # maxdepth 체크할 호가 개수(-1)
 # gatherbot.start(sleep=1, duration=60 * 60 * 4, maxdepth=4) # 5 hours of data, one minute intervals

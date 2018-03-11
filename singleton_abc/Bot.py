@@ -348,3 +348,6 @@ class ArbitrageBot(Bot):
 class QuoteBot(Bot):
     def __init__(self, config, brokers):
         super(QuoteBot, self).__init__(config, brokers)
+
+    def mon(self, currency):
+        pc = ProfitCalculator(self.brokers, currency)
